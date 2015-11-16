@@ -1,5 +1,6 @@
 var program = require('commander');
 var AWS = require('aws-sdk');
+var sleep = require('sleep-async')();
 AWS.config.loadFromPath('./config.json');
 var dynamoDB = new AWS.DynamoDB();
 var headers = [];
@@ -14,7 +15,7 @@ if (!program.table) {
 
 var query = {
     "TableName": program.table,
-    "Limit": 1000,
+    "Limit": 800,
 };
 
 
@@ -42,7 +43,9 @@ var scanDynamoDB = function(query) {
             printout(data.Items) // Print out the subset of results.
             if (data.LastEvaluatedKey) { // Result is incomplete; there is more to come.
                 query.ExclusiveStartKey = data.LastEvaluatedKey;
-                scanDynamoDB(query);
+                sleep.sleep(60 * 1000, function(){
+                  scanDynamoDB(query);
+                });
             };
         } else console.dir(err);
 
